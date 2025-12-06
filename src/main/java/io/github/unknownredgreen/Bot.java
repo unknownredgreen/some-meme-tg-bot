@@ -41,26 +41,43 @@ class Bot extends TelegramLongPollingBot {
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
         updateData(text);
+
+        try {
+            if (msg.getReplyToMessage() != null
+                    &&
+                msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
+            ) {
+                sendChangedMessage(chatId, msg);
+                return;
+            }
+        } catch (TelegramApiException e) {
+            log.warn(e.getMessage());
+        }
+
         if (random.nextInt(0, 10) == 9) {
-            if (random.nextInt(0, 10) == 9) {
-                try {
-                    execute(SendMessage.builder()
-                            .chatId(String.valueOf(chatId))
-                            .text(getRandomGeneratedString())
-                            .replyToMessageId(msg.getMessageId())
-                            .build());
-                } catch (TelegramApiException e) {
-                    log.warn(e.getMessage());
-                }
-            } else {
-                try {
-                    execute(SendMessage.builder()
-                            .chatId(String.valueOf(chatId))
-                            .text(getRandomGeneratedString())
-                            .build());
-                } catch (TelegramApiException e) {
-                    log.warn(e.getMessage());
-                }
+            sendChangedMessage(chatId, msg);
+        }
+    }
+
+    private void sendChangedMessage(long chatId, Message msg) {
+        if (random.nextInt(0, 10) == 9) {
+            try {
+                execute(SendMessage.builder()
+                        .chatId(String.valueOf(chatId))
+                        .text(getRandomGeneratedString())
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+            } catch (TelegramApiException e) {
+                log.warn(e.getMessage());
+            }
+        } else {
+            try {
+                execute(SendMessage.builder()
+                        .chatId(String.valueOf(chatId))
+                        .text(getRandomGeneratedString())
+                        .build());
+            } catch (TelegramApiException e) {
+                log.warn(e.getMessage());
             }
         }
     }
