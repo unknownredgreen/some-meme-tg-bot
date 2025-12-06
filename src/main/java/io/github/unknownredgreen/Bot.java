@@ -110,11 +110,17 @@ class Bot extends TelegramLongPollingBot {
         StringBuilder sb = new StringBuilder();
 
         if (baseString1.length() < baseString2.length()) {
-            sb.append(baseString1).append(" ").append(baseString2);
+            sb.append(baseString1).append(" ").append(lowerFirstChar(baseString2));
         } else {
-            sb.append(baseString2).append(" ").append(baseString1);
+            sb.append(baseString2).append(" ").append(lowerFirstChar(baseString1));
         }
 
         return sb.toString();
+    }
+
+    private String lowerFirstChar(String str) {
+        char[] chars = str.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
     }
 }
