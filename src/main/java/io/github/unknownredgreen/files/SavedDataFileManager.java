@@ -1,4 +1,4 @@
-package io.github.unknownredgreen;
+package io.github.unknownredgreen.files;
 
 import lombok.RequiredArgsConstructor;
 
@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RequiredArgsConstructor
-class FileManager {
+public class SavedDataFileManager {
     private final String dataFilePath;
 
     private boolean canLoad = true;
