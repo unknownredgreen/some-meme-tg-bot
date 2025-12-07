@@ -1,10 +1,13 @@
 package io.github.unknownredgreen;
 
+import io.github.unknownredgreen.files.ConfigFileManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,9 +22,19 @@ class Bot extends TelegramLongPollingBot {
     private final String botToken;
     @Getter
     private final List<String> data;
+    private final ConfigFileManager configFileManager;
     private final Random random;
     private final int maxValue = 1000;
-
+    private String[] stickerIds;
+    private boolean canSendStickers = true;
+    @Override
+    public void onRegister() {
+        try {
+            stickerIds = configFileManager.parseStringArray("stickerIds");
+        } catch (NullPointerException e) {
+            canSendStickers = false;
+        }
+    }
 
     @Override
     public String getBotUsername() {
@@ -37,6 +50,9 @@ class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (!update.hasMessage()) return;
         Message msg = update.getMessage();
+        /*if (msg.hasSticker()) {
+            System.out.println(msg.getSticker().getFileId());
+        }*/
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
@@ -47,37 +63,67 @@ class Bot extends TelegramLongPollingBot {
                     &&
                 msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
             ) {
-                sendChangedMessage(chatId, msg);
+                makeRandomAction(chatId, msg);
                 return;
             }
         } catch (TelegramApiException e) {
             log.warn(e.getMessage());
         }
 
-        if (random.nextInt(0, 10) == 9) {
-            sendChangedMessage(chatId, msg);
-        }
-    }
-
-    private void sendChangedMessage(long chatId, Message msg) {
-        if (random.nextInt(0, 10) == 9) {
+        if (random.nextInt(0, 7) == 6) {
             try {
-                execute(SendMessage.builder()
-                        .chatId(String.valueOf(chatId))
-                        .text(getRandomGeneratedString())
-                        .replyToMessageId(msg.getMessageId())
-                        .build());
+                makeRandomAction(chatId, msg);
             } catch (TelegramApiException e) {
                 log.warn(e.getMessage());
             }
-        } else {
-            try {
-                execute(SendMessage.builder()
-                        .chatId(String.valueOf(chatId))
-                        .text(getRandomGeneratedString())
-                        .build());
-            } catch (TelegramApiException e) {
-                log.warn(e.getMessage());
+        }
+    }
+
+    private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
+        class HelperClass {
+            void sendRandomMessage() throws TelegramApiException {
+                if (random.nextInt(0, 10) == 9) {
+                    execute(SendMessage.builder()
+                            .chatId(String.valueOf(chatId))
+                            .text(getRandomGeneratedString())
+                            .replyToMessageId(msg.getMessageId())
+                            .build());
+                } else {
+                    execute(SendMessage.builder()
+                            .chatId(String.valueOf(chatId))
+                            .text(getRandomGeneratedString())
+                            .build());
+                }
+            }
+
+
+            void sendRandomSticker() throws TelegramApiException {
+                if (random.nextInt(0, 10) == 9) {
+                    execute(SendSticker.builder()
+                            .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                            .chatId(String.valueOf(chatId))
+                            .replyToMessageId(msg.getMessageId())
+                            .build());
+                } else {
+                    execute(SendSticker.builder()
+                            .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                            .chatId(String.valueOf(chatId))
+                            .build());
+                }
+            }
+        }
+        HelperClass localMethods = new HelperClass();
+
+        switch (random.nextInt(1, 3)) {
+            case 1: {
+                localMethods.sendRandomMessage();
+                break;
+            }
+
+            case 2: {
+                if (canSendStickers) localMethods.sendRandomSticker();
+                else localMethods.sendRandomMessage();
+                break;
             }
         }
     }
