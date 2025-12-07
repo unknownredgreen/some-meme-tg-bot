@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -20,6 +21,7 @@ import java.util.Random;
 class Bot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
+    private long botStartTimeInSeconds;
     @Getter
     private final List<String> data;
     private final ConfigFileManager configFileManager;
@@ -27,8 +29,11 @@ class Bot extends TelegramLongPollingBot {
     private final int maxValue = 1000;
     private String[] stickerIds;
     private boolean canSendStickers = true;
+
+
     @Override
     public void onRegister() {
+        botStartTimeInSeconds = System.currentTimeMillis()/1000;
         try {
             stickerIds = configFileManager.parseStringArray("stickerIds");
         } catch (NullPointerException e) {
@@ -53,10 +58,13 @@ class Bot extends TelegramLongPollingBot {
         /*if (msg.hasSticker()) {
             System.out.println(msg.getSticker().getFileId());
         }*/
+        if ((long) msg.getDate() < botStartTimeInSeconds) return;
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
         updateData(text);
+
+        if (data.size() < 5) return;
 
         try {
             if (msg.getReplyToMessage() != null
