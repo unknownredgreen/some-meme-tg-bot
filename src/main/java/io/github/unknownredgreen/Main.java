@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class Main {
@@ -50,7 +51,12 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                savedDataFileManager.save(bot.getData());
+                List<String> data = bot.getData();
+                while (data.size() > bot.getMaxDataLength()) {
+                    data.removeLast();
+                }
+                System.out.println("New data length: " + data.size());
+                savedDataFileManager.save(data);
                 configFileManager.fixSelf();
             } catch (IOException e) {
                 throw new RuntimeException(e);

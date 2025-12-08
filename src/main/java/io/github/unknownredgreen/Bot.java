@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -26,14 +25,24 @@ class Bot extends TelegramLongPollingBot {
     private final List<String> data;
     private final ConfigFileManager configFileManager;
     private final Random random;
-    private final int maxValue = 1000;
+    @Getter
+    private int maxDataLength;
     private String[] stickerIds;
     private boolean canSendStickers = true;
-
+    private final RandomMessages randomMessages = new RandomMessages();
 
     @Override
     public void onRegister() {
         botStartTimeInSeconds = System.currentTimeMillis()/1000;
+        try {
+            maxDataLength = configFileManager.parseInt("maxDataLength");
+            //i don`t think you even need < 5 data saved
+            if (maxDataLength < 5) {
+                throw new RuntimeException("Max data length can`t be < 5. Change maxDataLength in %s".formatted(configFileManager.getConfigFilePath()));
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            maxDataLength = 1000;
+        }
         try {
             stickerIds = configFileManager.parseStringArray("stickerIds");
         } catch (NullPointerException e) {
@@ -87,50 +96,49 @@ class Bot extends TelegramLongPollingBot {
         }
     }
 
-    private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
-        class HelperClass {
-            void sendRandomMessage() throws TelegramApiException {
-                if (random.nextInt(0, 10) == 9) {
-                    execute(SendMessage.builder()
-                            .chatId(String.valueOf(chatId))
-                            .text(getRandomGeneratedString())
-                            .replyToMessageId(msg.getMessageId())
-                            .build());
-                } else {
-                    execute(SendMessage.builder()
-                            .chatId(String.valueOf(chatId))
-                            .text(getRandomGeneratedString())
-                            .build());
-                }
-            }
-
-
-            void sendRandomSticker() throws TelegramApiException {
-                if (random.nextInt(0, 10) == 9) {
-                    execute(SendSticker.builder()
-                            .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                            .chatId(String.valueOf(chatId))
-                            .replyToMessageId(msg.getMessageId())
-                            .build());
-                } else {
-                    execute(SendSticker.builder()
-                            .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                            .chatId(String.valueOf(chatId))
-                            .build());
-                }
+    private class RandomMessages {
+        public void sendRandomMessage(long chatId, Message msg) throws TelegramApiException {
+            if (random.nextInt(0, 10) == 9) {
+                execute(SendMessage.builder()
+                        .chatId(String.valueOf(chatId))
+                        .text(getRandomGeneratedString())
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+            } else {
+                execute(SendMessage.builder()
+                        .chatId(String.valueOf(chatId))
+                        .text(getRandomGeneratedString())
+                        .build());
             }
         }
-        HelperClass localMethods = new HelperClass();
 
+
+        public void sendRandomSticker(long chatId, Message msg) throws TelegramApiException {
+            if (random.nextInt(0, 10) == 9) {
+                execute(SendSticker.builder()
+                        .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                        .chatId(String.valueOf(chatId))
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+            } else {
+                execute(SendSticker.builder()
+                        .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                        .chatId(String.valueOf(chatId))
+                        .build());
+            }
+        }
+    }
+
+    private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
         switch (random.nextInt(1, 3)) {
             case 1: {
-                localMethods.sendRandomMessage();
+                randomMessages.sendRandomMessage(chatId, msg);
                 break;
             }
 
             case 2: {
-                if (canSendStickers) localMethods.sendRandomSticker();
-                else localMethods.sendRandomMessage();
+                if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
+                else randomMessages.sendRandomMessage(chatId, msg);
                 break;
             }
         }
@@ -146,12 +154,12 @@ class Bot extends TelegramLongPollingBot {
 
         int size = data.size();
 
-        if (size < maxValue) {
+        if (size < maxDataLength) {
             data.add(str);
-        } else if (size == maxValue) {
-            data.set(random.nextInt(0, maxValue), str);
+        } else if (size == maxDataLength) {
+            data.set(random.nextInt(0, maxDataLength), str);
         } else {
-            while (data.size() > maxValue) {
+            while (data.size() > maxDataLength) {
                 data.removeLast();
             }
         }
