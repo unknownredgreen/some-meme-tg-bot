@@ -122,28 +122,21 @@ class Bot extends TelegramLongPollingBot {
 
 
         public void sendRandomSticker(long chatId, Message msg) throws TelegramApiException {
-            if (random.nextInt(0, 10) == 9) {
-                execute(SendSticker.builder()
-                        .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                        .chatId(String.valueOf(chatId))
-                        .replyToMessageId(msg.getMessageId())
-                        .build());
-            } else {
-                execute(SendSticker.builder()
-                        .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                        .chatId(String.valueOf(chatId))
-                        .build());
-            }
+            execute(SendSticker.builder()
+                    .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                    .chatId(String.valueOf(chatId))
+                    .replyToMessageId(msg.getMessageId())
+                    .build());
         }
     }
 
     private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
-        int randomNum = random.nextInt(0, 10);
-        if (randomNum < 7) {
-            randomMessages.sendRandomMessage(chatId, msg);
-        } else {
+        int randomNum = random.nextInt(0, 20);
+        if (randomNum == 0) {
             if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
             else randomMessages.sendRandomMessage(chatId, msg);
+        } else {
+            randomMessages.sendRandomMessage(chatId, msg);
         }
     }
 
@@ -172,6 +165,10 @@ class Bot extends TelegramLongPollingBot {
         String baseString1 = data.get(random.nextInt(0, data.size()));
         String baseString2 = data.get(random.nextInt(0, data.size()));
 
+        if (random.nextInt(0, 10) == 0) {
+            baseString2 = new StringBuilder(baseString2).reverse().toString();
+        }
+
         StringBuilder sb = new StringBuilder();
 
         if (baseString1.length() < baseString2.length()) {
@@ -180,6 +177,24 @@ class Bot extends TelegramLongPollingBot {
             sb.append(baseString2).append(" ").append(lowerFirstChar(baseString1));
         }
 
+        if (sb.length() < 10) {
+            while (sb.length() < 60) {
+                sb.append(data.get(random.nextInt(0, data.size())));
+            }
+        }
+
+        switch (random.nextInt(0, 4)) {
+            case 1: {
+                for (int i = 0; i < 7; i++) {
+                    sb.deleteCharAt(i);
+                }
+                break;
+            }
+            case 2: {
+                sb.insert(random.nextInt(0, sb.length()), String.valueOf(random.nextInt(0, 10)).repeat(random.nextInt(1, 4)));
+                break;
+            }
+        }
         return sb.toString();
     }
 
