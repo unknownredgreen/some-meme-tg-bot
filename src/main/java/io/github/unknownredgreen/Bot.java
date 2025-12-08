@@ -95,7 +95,7 @@ class Bot extends TelegramLongPollingBot {
                 return;
             }
 
-            if (chatLimits.get(chatId) > 30 && random.nextInt(0, 10) == 0) {
+            if (chatLimits.get(chatId) > 20 && random.nextInt(0, 10) == 0) {
                 makeRandomAction(chatId, msg);
                 chatLimits.put(chatId, 0);
             }
