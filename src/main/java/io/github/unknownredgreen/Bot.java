@@ -87,7 +87,7 @@ class Bot extends TelegramLongPollingBot {
             log.warn(e.getMessage());
         }
 
-        if (random.nextInt(0, 7) == 6) {
+        if (random.nextInt(0, 20) == 0) {
             try {
                 makeRandomAction(chatId, msg);
             } catch (TelegramApiException e) {
@@ -130,17 +130,12 @@ class Bot extends TelegramLongPollingBot {
     }
 
     private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
-        switch (random.nextInt(1, 3)) {
-            case 1: {
-                randomMessages.sendRandomMessage(chatId, msg);
-                break;
-            }
-
-            case 2: {
-                if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
-                else randomMessages.sendRandomMessage(chatId, msg);
-                break;
-            }
+        int randomNum = random.nextInt(0, 10);
+        if (randomNum < 7) {
+            randomMessages.sendRandomMessage(chatId, msg);
+        } else {
+            if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
+            else randomMessages.sendRandomMessage(chatId, msg);
         }
     }
 
