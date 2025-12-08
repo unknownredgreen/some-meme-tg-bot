@@ -1,5 +1,6 @@
 package io.github.unknownredgreen.files;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 public class ConfigFileManager {
+    @Getter
     private final String configFilePath;
     private List<String> startData;
     private final Map<String, String> map = new LinkedHashMap<>();
