@@ -12,7 +12,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @Slf4j
@@ -30,6 +32,7 @@ class Bot extends TelegramLongPollingBot {
     private String[] stickerIds;
     private boolean canSendStickers = true;
     private final RandomMessages randomMessages = new RandomMessages();
+    private final Map<Long, Integer> chatLimits = new HashMap<>();
 
     @Override
     public void onRegister() {
@@ -71,11 +74,19 @@ class Bot extends TelegramLongPollingBot {
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
+
+        chatLimits.put(chatId, chatLimits.getOrDefault(chatId, 0)+1);
+
         updateData(text);
 
         if (data.size() < 5) return;
 
         try {
+            if (chatId == msg.getFrom().getId()) {
+                makeRandomAction(chatId, msg);
+                return;
+            }
+
             if (msg.getReplyToMessage() != null
                     &&
                 msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
@@ -83,16 +94,13 @@ class Bot extends TelegramLongPollingBot {
                 makeRandomAction(chatId, msg);
                 return;
             }
-        } catch (TelegramApiException e) {
-            log.warn(e.getMessage());
-        }
 
-        if (random.nextInt(0, 20) == 0) {
-            try {
+            if (chatLimits.get(chatId) > 30 && random.nextInt(0, 10) == 0) {
                 makeRandomAction(chatId, msg);
-            } catch (TelegramApiException e) {
-                log.warn(e.getMessage());
+                chatLimits.put(chatId, 0);
             }
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
         }
     }
 
