@@ -83,7 +83,7 @@ class Bot extends TelegramLongPollingBot {
 
         try {
             if (chatId == msg.getFrom().getId()) {
-                makeRandomAction(chatId, msg);
+                makeRandomAction(chatId, msg, false);
                 return;
             }
 
@@ -91,12 +91,17 @@ class Bot extends TelegramLongPollingBot {
                     &&
                 msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
             ) {
-                makeRandomAction(chatId, msg);
+                makeRandomAction(chatId, msg, true);
+                return;
+            }
+
+            if (text.contains("@" + getMe().getUserName())) {
+                makeRandomAction(chatId, msg, true);
                 return;
             }
 
             if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
-                makeRandomAction(chatId, msg);
+                makeRandomAction(chatId, msg, false);
                 chatLimits.put(chatId, 0);
             }
         } catch (TelegramApiException e) {
@@ -105,8 +110,17 @@ class Bot extends TelegramLongPollingBot {
     }
 
     private class RandomMessages {
-        public void sendRandomMessage(long chatId, Message msg) throws TelegramApiException {
-            if (random.nextInt(0, 10) == 9) {
+        public void sendRandomMessage(long chatId, Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
+            if (isReplyGuaranteed) {
+                execute(SendMessage.builder()
+                        .chatId(String.valueOf(chatId))
+                        .text(getRandomGeneratedString())
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+                return;
+            }
+
+            if (random.nextInt(0, 10) == 0) {
                 execute(SendMessage.builder()
                         .chatId(String.valueOf(chatId))
                         .text(getRandomGeneratedString())
@@ -130,13 +144,13 @@ class Bot extends TelegramLongPollingBot {
         }
     }
 
-    private void makeRandomAction(long chatId, Message msg) throws TelegramApiException {
+    private void makeRandomAction(long chatId, Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
         int randomNum = random.nextInt(0, 20);
         if (randomNum == 0) {
             if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
-            else randomMessages.sendRandomMessage(chatId, msg);
+            else randomMessages.sendRandomMessage(chatId, msg, isReplyGuaranteed);
         } else {
-            randomMessages.sendRandomMessage(chatId, msg);
+            randomMessages.sendRandomMessage(chatId, msg, isReplyGuaranteed);
         }
     }
 
@@ -171,19 +185,20 @@ class Bot extends TelegramLongPollingBot {
 
         StringBuilder sb = new StringBuilder();
 
-        if (baseString1.length() < baseString2.length()) {
+        if (baseString1.codePointCount(0, baseString1.length()) < baseString2.codePointCount(0, baseString2.length())) {
             sb.append(baseString1).append(" ").append(lowerFirstChar(baseString2));
         } else {
             sb.append(baseString2).append(" ").append(lowerFirstChar(baseString1));
         }
 
-        if (sb.length() < 10) {
-            while (sb.length() < 60) {
-                sb.append(data.get(random.nextInt(0, data.size())));
+        if (sb.codePointCount(0, sb.length())< 30) {
+            while (sb.codePointCount(0, sb.length()) < 50) {
+                String randomStr = data.get(random.nextInt(0, data.size()));
+                sb.append(randomStr);
             }
         }
 
-        switch (random.nextInt(0, 4)) {
+        switch (random.nextInt(0, 5)) {
             case 1: {
                 for (int i = 0; i < 7; i++) {
                     sb.deleteCharAt(i);
@@ -191,8 +206,19 @@ class Bot extends TelegramLongPollingBot {
                 break;
             }
             case 2: {
-                sb.insert(random.nextInt(0, sb.length()), String.valueOf(random.nextInt(0, 10)).repeat(random.nextInt(1, 4)));
+                sb.insert(
+                        random.nextInt(0, sb.codePointCount(0, sb.length())),
+                        String.valueOf(random.nextInt(0, 10))
+                                .repeat(random.nextInt(1, 4))
+                );
                 break;
+            }
+            case 3: {
+                for (int i = 0; i < random.nextInt(1, 4); i++) {
+                    String randomData = data.get(random.nextInt(0, data.size()));
+                    String[] split = randomData.split(" ");
+                    sb.insert(sb.indexOf(" "), sb.append(split[random.nextInt(0, split.length)])).append(" ");
+                }
             }
         }
         return sb.toString();
