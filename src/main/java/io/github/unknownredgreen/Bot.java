@@ -83,7 +83,7 @@ class Bot extends TelegramLongPollingBot {
 
         try {
             if (chatId == msg.getFrom().getId()) {
-                makeRandomAction(chatId, msg, false);
+                makeRandomAction(msg, false);
                 return;
             }
 
@@ -91,17 +91,17 @@ class Bot extends TelegramLongPollingBot {
                     &&
                 msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
             ) {
-                makeRandomAction(chatId, msg, true);
+                makeRandomAction(msg, true);
                 return;
             }
 
             if (text.contains("@" + getMe().getUserName())) {
-                makeRandomAction(chatId, msg, true);
+                makeRandomAction(msg, true);
                 return;
             }
 
             if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
-                makeRandomAction(chatId, msg, false);
+                makeRandomAction(msg, false);
                 chatLimits.put(chatId, 0);
             }
         } catch (TelegramApiException e) {
@@ -110,10 +110,10 @@ class Bot extends TelegramLongPollingBot {
     }
 
     private class RandomMessages {
-        public void sendRandomMessage(long chatId, Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
+        public void sendRandomMessage(Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
             if (isReplyGuaranteed) {
                 execute(SendMessage.builder()
-                        .chatId(String.valueOf(chatId))
+                        .chatId(String.valueOf(msg.getChatId()))
                         .text(getRandomGeneratedString())
                         .replyToMessageId(msg.getMessageId())
                         .build());
@@ -122,35 +122,35 @@ class Bot extends TelegramLongPollingBot {
 
             if (random.nextInt(0, 10) == 0) {
                 execute(SendMessage.builder()
-                        .chatId(String.valueOf(chatId))
+                        .chatId(String.valueOf(msg.getChatId()))
                         .text(getRandomGeneratedString())
                         .replyToMessageId(msg.getMessageId())
                         .build());
             } else {
                 execute(SendMessage.builder()
-                        .chatId(String.valueOf(chatId))
+                        .chatId(String.valueOf(msg.getChatId()))
                         .text(getRandomGeneratedString())
                         .build());
             }
         }
 
 
-        public void sendRandomSticker(long chatId, Message msg) throws TelegramApiException {
+        public void sendRandomSticker(Message msg) throws TelegramApiException {
             execute(SendSticker.builder()
                     .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                    .chatId(String.valueOf(chatId))
+                    .chatId(String.valueOf(msg.getChatId()))
                     .replyToMessageId(msg.getMessageId())
                     .build());
         }
     }
 
-    private void makeRandomAction(long chatId, Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
+    private void makeRandomAction(Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
         int randomNum = random.nextInt(0, 20);
         if (randomNum == 0) {
-            if (canSendStickers) randomMessages.sendRandomSticker(chatId, msg);
-            else randomMessages.sendRandomMessage(chatId, msg, isReplyGuaranteed);
+            if (canSendStickers) randomMessages.sendRandomSticker(msg);
+            else randomMessages.sendRandomMessage(msg, isReplyGuaranteed);
         } else {
-            randomMessages.sendRandomMessage(chatId, msg, isReplyGuaranteed);
+            randomMessages.sendRandomMessage(msg, isReplyGuaranteed);
         }
     }
 
