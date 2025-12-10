@@ -1,51 +1,101 @@
 package io.github.unknownredgreen;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.reactions.SetMessageReaction;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.reactions.ReactionType;
+import org.telegram.telegrambots.meta.api.objects.reactions.ReactionTypeEmoji;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@RequiredArgsConstructor
+@Slf4j
 final class BotActionsWrapper {
     private final Bot bot;
     private final Random random;
     private final List<String> data;
     private final String[] stickerIds;
+    private final String[] reactionEmojis;
 
-    public void sendRandomMessage(Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
-        if (isReplyGuaranteed) {
-            bot.execute(SendMessage.builder()
-                    .chatId(String.valueOf(msg.getChatId()))
-                    .text(getRandomGeneratedString())
-                    .replyToMessageId(msg.getMessageId())
-                    .build());
-            return;
-        }
+    public BotActionsWrapper(Bot bot, Random random, List<String> data, ConfigStorage configStorage) {
+        this.bot = bot;
+        this.random = random;
+        this.data = data;
 
-        if (random.nextInt(0, 10) == 0) {
-            bot.execute(SendMessage.builder()
-                    .chatId(String.valueOf(msg.getChatId()))
-                    .text(getRandomGeneratedString())
-                    .replyToMessageId(msg.getMessageId())
-                    .build());
-        } else {
-            bot.execute(SendMessage.builder()
-                    .chatId(String.valueOf(msg.getChatId()))
-                    .text(getRandomGeneratedString())
-                    .build());
+        stickerIds = configStorage.getStickerIds();
+        reactionEmojis = configStorage.getReactionEmojis();
+    }
+
+    public void sendRandomMessage(Message msg, boolean isReplyGuaranteed) {
+        try {
+            if (isReplyGuaranteed) {
+                bot.execute(SendMessage.builder()
+                        .chatId(String.valueOf(msg.getChatId()))
+                        .text(getRandomGeneratedString())
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+                return;
+            }
+
+            if (random.nextInt(0, 10) == 0) {
+                bot.execute(SendMessage.builder()
+                        .chatId(String.valueOf(msg.getChatId()))
+                        .text(getRandomGeneratedString())
+                        .replyToMessageId(msg.getMessageId())
+                        .build());
+            } else {
+                bot.execute(SendMessage.builder()
+                        .chatId(String.valueOf(msg.getChatId()))
+                        .text(getRandomGeneratedString())
+                        .build());
+            }
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
         }
     }
-    public void sendRandomSticker(Message msg) throws TelegramApiException {
-        bot.execute(SendSticker.builder()
-                .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
-                .chatId(String.valueOf(msg.getChatId()))
-                .replyToMessageId(msg.getMessageId())
-                .build());
+    public void sendRandomSticker(Message msg) {
+
+        try {
+            bot.execute(SendSticker.builder()
+                    .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                    .chatId(String.valueOf(msg.getChatId()))
+                    .replyToMessageId(msg.getMessageId())
+                    .build());
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+    public void setRandomReaction(Message msg) {
+        String[] reactions = reactionEmojis;
+        List<ReactionType> emoji = new ArrayList<>();
+        emoji.add(new ReactionTypeEmoji("emoji", reactions[random.nextInt(0, reactions.length)]));
+        try {
+            bot.execute(SetMessageReaction.builder()
+                    .chatId(msg.getChatId())
+                    .messageId(msg.getMessageId())
+                    .reactionTypes(emoji)
+                    .build());
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+    public void setReaction(Message msg, String reaction) {
+        List<ReactionType> emoji = new ArrayList<>();
+        emoji.add(new ReactionTypeEmoji("emoji", reaction));
+        try {
+            bot.execute(SetMessageReaction.builder()
+                    .chatId(msg.getChatId())
+                    .messageId(msg.getMessageId())
+                    .reactionTypes(emoji)
+                    .build());
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
     }
 
     private String getRandomGeneratedString() {
