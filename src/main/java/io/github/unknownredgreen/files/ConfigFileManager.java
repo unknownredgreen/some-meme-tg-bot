@@ -57,4 +57,14 @@ public class ConfigFileManager {
         .mapToInt(Integer::parseInt)
         .toArray();
     }
+    public Boolean parseBoolean(String key) {
+        if (!map.containsKey(key)) return null;
+
+        String value = parseString(key);
+        if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+            throw new IllegalArgumentException("Invalid boolean value for key '%s' in config".formatted(key));
+        }
+
+        return Boolean.parseBoolean(value);
+    }
 }
