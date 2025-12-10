@@ -14,6 +14,7 @@ public class Main {
     private static SavedDataFileManager savedDataFileManager;
     private static ConfigFileManager configFileManager;
     private static final Random random = new Random();
+    private static ConfigStorage configStorage;
 
     public static void main(String[] args) throws TelegramApiException, IOException {
         int neededArgCount = 4;
@@ -45,14 +46,15 @@ public class Main {
         savedDataFileManager = new SavedDataFileManager(dataFilePath);
         configFileManager = new ConfigFileManager(configFilePath);
         configFileManager.init();
+        configStorage = new ConfigStorage(configFileManager);
 
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        Bot bot = new Bot(botUsername, botToken, savedDataFileManager.load(), configFileManager, random);
+        Bot bot = new Bot(botUsername, botToken, savedDataFileManager.load(), configStorage, random);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 List<String> data = bot.getData();
-                while (data.size() > bot.getMaxDataLength()) {
+                while (data.size() > configStorage.getMaxDataLength()) {
                     data.removeLast();
                 }
                 System.out.println("New data length: " + data.size());
