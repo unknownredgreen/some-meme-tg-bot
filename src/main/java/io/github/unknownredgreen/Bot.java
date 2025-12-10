@@ -1,12 +1,11 @@
 package io.github.unknownredgreen;
 
-import io.github.unknownredgreen.files.ConfigFileManager;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.*;
@@ -16,38 +15,30 @@ import java.util.*;
 final class Bot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
-    private long botStartTimeInSeconds;
     private final List<String> data;
-    private final ConfigFileManager configFileManager;
+    private final ConfigStorage configStorage;
     private final Random random;
-    @Getter
-    private int maxDataLength;
-    private String[] stickerIds;
-    private boolean canSendStickers = true;
     private final Map<Long, Integer> chatLimits = new HashMap<>();
+
     private BotActionsWrapper actions;
+    private User me;
+    private boolean sendingStickers;
+    private boolean reactingToMessages;
+    private long botStartTimeInSeconds;
+    private int maxDataLength;
 
     @Override
     public void onRegister() {
         botStartTimeInSeconds = System.currentTimeMillis()/1000;
         try {
-            maxDataLength = configFileManager.parseInt("maxDataLength");
-            //i don`t think you even need < 5 data saved
-            if (maxDataLength < 5) {
-                throw new RuntimeException("Max data length can`t be < 5. Change maxDataLength in %s".formatted(configFileManager.getConfigFilePath()));
-            }
-        } catch (NumberFormatException | NullPointerException e) {
-            log.debug("No maxDataLength found in config. Using default: 1000");
-            maxDataLength = 1000;
+            me = getMe();
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
         }
-        try {
-            stickerIds = configFileManager.parseStringArray("stickerIds");
-        } catch (NullPointerException e) {
-            log.debug("No stickerIds found in config. Using default: no sticker sending");
-            canSendStickers = false;
-        }
-        // Initialize after got stickerIds
-        actions = new BotActionsWrapper(this, random, getData(), getStickerIds());
+        sendingStickers = configStorage.isSendingStickers();
+        reactingToMessages = configStorage.isReactingToMessages();
+        maxDataLength = configStorage.getMaxDataLength();
+        actions = new BotActionsWrapper(this, random, getData(), configStorage);
     }
 
     @Override
@@ -60,10 +51,6 @@ final class Bot extends TelegramLongPollingBot {
         return botToken;
     }
 
-    public String[] getStickerIds() {
-        return stickerIds.clone();
-    }
-
     public List<String> getData() {
         return Collections.unmodifiableList(data);
     }
@@ -73,48 +60,53 @@ final class Bot extends TelegramLongPollingBot {
         if (!update.hasMessage()) return;
         Message msg = update.getMessage();
         if ((long) msg.getDate() < botStartTimeInSeconds) return;
+
+        if (reactingToMessages && random.nextInt(0, 10) == 0) actions.setRandomReaction(msg);
+
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
-
         chatLimits.put(chatId, chatLimits.getOrDefault(chatId, 0)+1);
 
         updateData(text);
 
         if (data.size() < 5) return;
 
-        try {
-            if (chatId == msg.getFrom().getId()) {
-                makeRandomAction(msg, false);
-                return;
-            }
+        if (chatId == msg.getFrom().getId()) {
+            makeRandomAction(msg, false);
+            return;
+        }
 
-            if (msg.getReplyToMessage() != null
-                    &&
-                msg.getReplyToMessage().getFrom().getId().equals(getMe().getId())
-            ) {
-                makeRandomAction(msg, true);
-                return;
-            }
+        if (
+            me != null
+                &&
+            msg.getReplyToMessage() != null
+                &&
+            msg.getReplyToMessage().getFrom().getId().equals(me.getId())
+        ) {
+            makeRandomAction(msg, true);
+            return;
+        }
 
-            if (text.contains("@" + getMe().getUserName())) {
-                makeRandomAction(msg, true);
-                return;
+        if (me != null && text.contains("@" + getBotUsername())) {
+            makeRandomAction(msg, true);
+            switch (random.nextInt(1, 3)) {
+                case 1: actions.setReaction(msg, "\uD83D\uDC4D"); break;
+                case 2: actions.setReaction(msg, "\uD83D\uDC4E"); break;
             }
+            return;
+        }
 
-            if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
-                makeRandomAction(msg, false);
-                chatLimits.put(chatId, 0);
-            }
-        } catch (TelegramApiException e) {
-            log.error(e.getMessage());
+        if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
+            makeRandomAction(msg, false);
+            chatLimits.put(chatId, 0);
         }
     }
 
-    private void makeRandomAction(Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
+    private void makeRandomAction(Message msg, boolean isReplyGuaranteed) {
         int randomNum = random.nextInt(0, 20);
         if (randomNum == 0) {
-            if (canSendStickers) actions.sendRandomSticker(msg);
+            if (sendingStickers) actions.sendRandomSticker(msg);
             else actions.sendRandomMessage(msg, isReplyGuaranteed);
         } else {
             actions.sendRandomMessage(msg, isReplyGuaranteed);
