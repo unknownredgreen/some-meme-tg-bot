@@ -14,8 +14,8 @@ import java.util.Random;
 final class BotActionsWrapper {
     private final Bot bot;
     private final Random random;
-    private final List<String> data = bot.getData();
-    private final String[] stickerIds = bot.getStickerIds();
+    private final List<String> data;
+    private final String[] stickerIds;
 
     public void sendRandomMessage(Message msg, boolean isReplyGuaranteed) throws TelegramApiException {
         if (isReplyGuaranteed) {

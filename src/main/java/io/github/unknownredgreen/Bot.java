@@ -30,7 +30,6 @@ final class Bot extends TelegramLongPollingBot {
     @Override
     public void onRegister() {
         botStartTimeInSeconds = System.currentTimeMillis()/1000;
-        actions = new BotActionsWrapper(this, random);
         try {
             maxDataLength = configFileManager.parseInt("maxDataLength");
             //i don`t think you even need < 5 data saved
@@ -47,6 +46,8 @@ final class Bot extends TelegramLongPollingBot {
             log.debug("No stickerIds found in config. Using default: no sticker sending");
             canSendStickers = false;
         }
+        // Initialize after got stickerIds
+        actions = new BotActionsWrapper(this, random, getData(), getStickerIds());
     }
 
     @Override
