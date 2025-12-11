@@ -73,7 +73,7 @@ final class Bot extends TelegramLongPollingBot {
         if (data.size() < 5) return;
 
         if (chatId == msg.getFrom().getId()) {
-            makeRandomAction(msg, false);
+            makeRandomAction(msg, false, text);
             return;
         }
 
@@ -84,12 +84,12 @@ final class Bot extends TelegramLongPollingBot {
                 &&
             msg.getReplyToMessage().getFrom().getId().equals(me.getId())
         ) {
-            makeRandomAction(msg, true);
+            makeRandomAction(msg, true, text);
             return;
         }
 
         if (me != null && text.contains("@" + getBotUsername())) {
-            makeRandomAction(msg, true);
+            makeRandomAction(msg, true, text);
             switch (random.nextInt(1, 3)) {
                 case 1: actions.setReaction(msg, "\uD83D\uDC4D"); break;
                 case 2: actions.setReaction(msg, "\uD83D\uDC4E"); break;
@@ -98,18 +98,18 @@ final class Bot extends TelegramLongPollingBot {
         }
 
         if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
-            makeRandomAction(msg, false);
+            makeRandomAction(msg, false, text);
             chatLimits.put(chatId, 0);
         }
     }
 
-    private void makeRandomAction(Message msg, boolean isReplyGuaranteed) {
+    private void makeRandomAction(Message msg, boolean isReplyGuaranteed, String filteredText) {
         int randomNum = random.nextInt(0, 20);
         if (randomNum == 0) {
             if (sendingStickers) actions.sendRandomSticker(msg);
-            else actions.sendRandomMessage(msg, isReplyGuaranteed);
+            else actions.sendRandomMessage(msg, isReplyGuaranteed, filteredText);
         } else {
-            actions.sendRandomMessage(msg, isReplyGuaranteed);
+            actions.sendRandomMessage(msg, isReplyGuaranteed, filteredText);
         }
     }
 
