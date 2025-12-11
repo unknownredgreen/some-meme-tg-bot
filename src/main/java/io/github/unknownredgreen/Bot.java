@@ -70,7 +70,7 @@ final class Bot extends TelegramLongPollingBot {
 
         updateData(text);
 
-        if (data.size() < 5) return;
+        if (data.size() < 10) return;
 
         if (chatId == msg.getFrom().getId()) {
             makeRandomAction(msg, false, text);
