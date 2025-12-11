@@ -113,9 +113,9 @@ final class BotActionsWrapper {
 
         sb.append(" ").append(lowerFirstChar(strings.get(1))).append(" ");
 
-        log.debug(String.valueOf(strings.size()));
-        strings.forEach(log::debug);
-        log.debug("");
+        //log.debug(String.valueOf(strings.size()));
+        //strings.forEach(log::debug);
+        //log.debug("");
 
         for (int i = 2; i < strings.size(); i++) {
             String[] split = strings.get(i).split(" ");
