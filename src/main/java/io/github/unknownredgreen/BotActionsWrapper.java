@@ -31,12 +31,12 @@ final class BotActionsWrapper {
         reactionEmojis = configStorage.getReactionEmojis();
     }
 
-    public void sendRandomMessage(Message msg, boolean isReplyGuaranteed) {
+    public void sendRandomMessage(Message msg, boolean isReplyGuaranteed, String filteredText) {
         try {
             if (isReplyGuaranteed) {
                 bot.execute(SendMessage.builder()
                         .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString())
+                        .text(getRandomGeneratedString(filteredText))
                         .replyToMessageId(msg.getMessageId())
                         .build());
                 return;
@@ -45,13 +45,13 @@ final class BotActionsWrapper {
             if (random.nextInt(0, 10) == 0) {
                 bot.execute(SendMessage.builder()
                         .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString())
+                        .text(getRandomGeneratedString(filteredText))
                         .replyToMessageId(msg.getMessageId())
                         .build());
             } else {
                 bot.execute(SendMessage.builder()
                         .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString())
+                        .text(getRandomGeneratedString(filteredText))
                         .build());
             }
         } catch (TelegramApiException e) {
@@ -98,53 +98,48 @@ final class BotActionsWrapper {
         }
     }
 
-    private String getRandomGeneratedString() {
-        String baseString1 = data.get(random.nextInt(0, data.size()));
-        String baseString2 = data.get(random.nextInt(0, data.size()));
+    private String getRandomGeneratedString(String textToInclude) {
+        List<String> strings = new ArrayList<>();
 
-        if (random.nextInt(0, 10) == 0) {
-            baseString2 = new StringBuilder(baseString2).reverse().toString();
+        for (int i = 0; i < random.nextInt(3, 7); i++) {
+            strings.add(data.get(random.nextInt(0, data.size())));
         }
+        strings.add(
+                random.nextInt(0, strings.size()+1),
+                textToInclude
+        );
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(strings.getFirst());
 
-        if (baseString1.codePointCount(0, baseString1.length()) < baseString2.codePointCount(0, baseString2.length())) {
-            sb.append(baseString1).append(" ").append(lowerFirstChar(baseString2));
-        } else {
-            sb.append(baseString2).append(" ").append(lowerFirstChar(baseString1));
-        }
+        sb.append(" ").append(lowerFirstChar(strings.get(1))).append(" ");
 
-        if (sb.codePointCount(0, sb.length())< 30) {
-            while (sb.codePointCount(0, sb.length()) < 50) {
-                String randomStr = data.get(random.nextInt(0, data.size()));
-                sb.append(randomStr);
+        log.debug(String.valueOf(strings.size()));
+        strings.forEach(log::debug);
+        log.debug("");
+
+        for (int i = 2; i < strings.size(); i++) {
+            String[] split = strings.get(i).split(" ");
+            String appendable = split[random.nextInt(0, split.length)];
+            boolean upped = false;
+            if (random.nextInt(0, 2) == 0) {
+                appendable = appendable.toUpperCase();
+                upped = true;
+            } else if (!appendable.equals(appendable.toUpperCase())) {
+                appendable = lowerFirstChar(appendable);
             }
-        }
-
-        switch (random.nextInt(0, 5)) {
-            case 1: {
-                for (int i = 0; i < 7; i++) {
-                    sb.deleteCharAt(i);
-                }
-                break;
-            }
-            case 2: {
-                sb.insert(
-                        random.nextInt(0, sb.codePointCount(0, sb.length())),
-                        String.valueOf(random.nextInt(0, 10))
-                                .repeat(random.nextInt(1, 4))
-                );
-                break;
-            }
-            case 3: {
-                for (int i = 0; i < random.nextInt(1, 4); i++) {
-                    String randomData = data.get(random.nextInt(0, data.size()));
-                    String[] split = randomData.split(" ");
-                    sb.insert(sb.indexOf(" "), sb.append(split[random.nextInt(0, split.length)])).append(" ");
+            sb.append(appendable);
+            if (upped) {
+                switch (random.nextInt(0, 3)) {
+                    case 1: sb.append("!!!!!"); break;
+                    case 2: sb.append("?"); break;
                 }
             }
+            if (random.nextInt(0, 3) != 0) sb.append(" ");
         }
-        return sb.toString();
+
+        String finalString = sb.toString();
+        finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999)));
+        return finalString;
     }
 
     private String lowerFirstChar(String str) {
