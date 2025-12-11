@@ -101,7 +101,7 @@ final class BotActionsWrapper {
     private String getRandomGeneratedString(String textToInclude) {
         List<String> strings = new ArrayList<>();
 
-        for (int i = 0; i < random.nextInt(3, 7); i++) {
+        for (int i = 0; i < random.nextInt(5, 11); i++) {
             strings.add(data.get(random.nextInt(0, data.size())));
         }
         strings.add(
