@@ -24,21 +24,21 @@ public final class ConfigStorage {
                 throw new RuntimeException("Max data length can`t be < 5. Change maxDataLength in %s".formatted(configFileManager.getConfigFilePath()));
             }
         } catch (NumberFormatException | NullPointerException e) {
-            log.debug("No maxDataLength found in config. Using default: 1000");
+            log.info("No maxDataLength found in config. Using default: 1000");
             maxDataLength = 1000;
         }
 
         try {
             stickerIds = configFileManager.parseStringArray("stickerIds");
         } catch (NullPointerException e) {
-            log.debug("No stickerIds found in config. Using default: no sticker sending");
+            log.info("No stickerIds found in config. Using default: no sticker sending");
             sendingStickers = false;
         }
 
         try {
             reactionEmojis = configFileManager.parseStringArray("reactionEmojis");
         } catch (NullPointerException e) {
-            log.debug("No reactionEmojis found in config. Using default: no reacting to messages");
+            log.info("No reactionEmojis found in config. Using default: no reacting to messages");
             reactingToMessages = false;
         }
 
