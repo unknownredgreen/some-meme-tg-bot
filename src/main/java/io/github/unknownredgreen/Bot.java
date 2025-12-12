@@ -20,10 +20,12 @@ final class Bot extends TelegramLongPollingBot {
     private final Random random;
     private final Map<Long, Integer> chatLimits = new HashMap<>();
 
+    private Map<String, String> reactionEmojisByEqualsICAndEmoji;
     private BotActionsWrapper actions;
     private User me;
     private boolean sendingStickers;
     private boolean reactingToMessages;
+    private boolean reactingToMessagesByEqualsIC;
     private long botStartTimeInSeconds;
     private int maxDataLength;
 
@@ -37,7 +39,9 @@ final class Bot extends TelegramLongPollingBot {
         }
         sendingStickers = configStorage.isSendingStickers();
         reactingToMessages = configStorage.isReactingToMessages();
+        reactingToMessagesByEqualsIC = configStorage.isReactingToMessagesByEqualsIC();
         maxDataLength = configStorage.getMaxDataLength();
+        reactionEmojisByEqualsICAndEmoji = configStorage.getReactionEmojisByEqualsICAndEmoji();
         actions = new BotActionsWrapper(this, random, getData(), configStorage);
     }
 
@@ -66,6 +70,14 @@ final class Bot extends TelegramLongPollingBot {
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
+
+        if (reactingToMessagesByEqualsIC && reactionEmojisByEqualsICAndEmoji.containsKey(text.toLowerCase())) {
+            actions.setReaction(
+                    msg,
+                    reactionEmojisByEqualsICAndEmoji.get(text.toLowerCase())
+            );
+        }
+
         chatLimits.put(chatId, chatLimits.getOrDefault(chatId, 0)+1);
 
         updateData(text);
@@ -116,10 +128,6 @@ final class Bot extends TelegramLongPollingBot {
     private void updateData(String str) {
         if (str.length() > 100) return;
         if (data.contains(str)) return;
-
-        if (random.nextInt(0, 10) == 9) {
-            str = str.replace(" ", "");
-        }
 
         int size = data.size();
 
