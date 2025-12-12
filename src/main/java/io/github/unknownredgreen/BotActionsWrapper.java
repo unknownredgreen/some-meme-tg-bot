@@ -134,11 +134,15 @@ final class BotActionsWrapper {
                     case 2: sb.append("?"); break;
                 }
             }
-            if (random.nextInt(0, 3) != 0) sb.append(" ");
+            if (random.nextInt(0, 10) != 0) sb.append(" ");
         }
 
         String finalString = sb.toString();
-        finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999)));
+        switch (random.nextInt(0, 2)) {
+            case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4)));
+            case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999)));
+        }
+
         return finalString;
     }
 
