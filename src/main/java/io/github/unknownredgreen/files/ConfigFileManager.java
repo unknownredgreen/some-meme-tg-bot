@@ -15,7 +15,6 @@ public class ConfigFileManager {
     private List<String> startData;
     private final Map<String, String> map = new LinkedHashMap<>();
     private boolean canLoad = true;
-    private boolean canSave = true;
 
     public void init() throws IOException {
         if (!canLoad) throw new IllegalStateException("Can`t load more than one time.");
@@ -27,18 +26,6 @@ public class ConfigFileManager {
             String value = parsedLine[1];
             map.put(key, value);
         }
-    }
-
-    public void fixSelf() throws IOException {
-        if (!canSave) throw new IllegalStateException("Can`t save more than one time.");
-        canSave = false;
-        List<String> data = map.entrySet()
-            .stream()
-            .map(elem -> elem.getKey() + ":" + elem.getValue())
-            .toList();
-        if (data.equals(startData)) return;
-
-        Files.write(Paths.get(configFilePath), data);
     }
 
     public String parseString(String key) {
@@ -58,13 +45,19 @@ public class ConfigFileManager {
         .toArray();
     }
     public Boolean parseBoolean(String key) {
-        if (!map.containsKey(key)) return null;
-
         String value = parseString(key);
         if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
             throw new IllegalArgumentException("Invalid boolean value for key '%s' in config".formatted(key));
         }
-
         return Boolean.parseBoolean(value);
+    }
+    public Map<String, String> parseMapStringString(String key) {
+        Map<String, String> finalMap = new HashMap<>();
+        for (String str : parseStringArray(key)) {
+            String[] split = str.split("=");
+            if (split.length != 2) throw new IllegalArgumentException("Config: Too much arguments for map inside key '%s'".formatted(key));
+            finalMap.put(split[0], split[1]);
+        }
+        return finalMap;
     }
 }
