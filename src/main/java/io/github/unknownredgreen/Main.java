@@ -2,6 +2,7 @@ package io.github.unknownredgreen;
 
 import io.github.unknownredgreen.files.ConfigFileManager;
 import io.github.unknownredgreen.files.SavedDataFileManager;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+@Slf4j
 public class Main {
     private static SavedDataFileManager savedDataFileManager;
     private static ConfigFileManager configFileManager;
@@ -57,9 +59,8 @@ public class Main {
                 while (data.size() > configStorage.getMaxDataLength()) {
                     data.removeLast();
                 }
-                System.out.println("New data length: " + data.size());
+                log.info("New data length: " + data.size());
                 savedDataFileManager.save(data);
-                configFileManager.fixSelf();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
