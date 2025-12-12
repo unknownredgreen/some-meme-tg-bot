@@ -1,8 +1,12 @@
 package io.github.unknownredgreen;
 
 import io.github.unknownredgreen.files.ConfigFileManager;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
+import java.util.Map;
 
 @Slf4j
 @Getter
@@ -13,6 +17,14 @@ public final class ConfigStorage {
     private int maxDataLength;
     private boolean sendingStickers = true;
     private boolean reactingToMessages = true;
+    private boolean reactingToMessagesByEqualsIC = true;
+
+    @Getter(AccessLevel.NONE)
+    private Map<String, String> reactionEmojisByEqualsICAndEmoji; //where IC = Ignore case
+
+    public Map<String, String> getReactionEmojisByEqualsICAndEmoji() {
+        return Collections.unmodifiableMap(reactionEmojisByEqualsICAndEmoji);
+    }
 
     public ConfigStorage(ConfigFileManager configFileManager) {
         this.configFileManager = configFileManager;
@@ -29,32 +41,60 @@ public final class ConfigStorage {
         }
 
         try {
+            sendingStickers = configFileManager.parseBoolean("sendingStickers");
+        } catch (NullPointerException ignored) {}
+
+        try {
+            reactingToMessages = configFileManager.parseBoolean("reactingToMessages");
+        } catch (NullPointerException ignored) {}
+
+        try {
+            reactingToMessagesByEqualsIC = configFileManager.parseBoolean("reactingEmojisByEqualsIC");
+        } catch (NullPointerException ignored) {}
+
+        try {
             stickerIds = configFileManager.parseStringArray("stickerIds");
         } catch (NullPointerException e) {
-            log.info("No stickerIds found in config. Using default: no sticker sending");
-            sendingStickers = false;
+            if (sendingStickers) {
+                log.info("No stickerIds found in config. Using default: no sticker sending");
+                sendingStickers = false;
+            }
         }
 
         try {
             reactionEmojis = configFileManager.parseStringArray("reactionEmojis");
         } catch (NullPointerException e) {
-            log.info("No reactionEmojis found in config. Using default: no reacting to messages");
-            reactingToMessages = false;
+            if (reactingToMessages) {
+                log.info("No reactionEmojis found in config. Using default: no reacting to messages");
+                reactingToMessages = false;
+            }
         }
 
-
         try {
-            sendingStickers = configFileManager.parseBoolean("sendingStickers");
-        } catch (NullPointerException e) {}
+            reactionEmojisByEqualsICAndEmoji = configFileManager.parseMapStringString("reactionEmojisByEqualsICAndEmoji");
+        } catch (NullPointerException e) {
+            if (reactingToMessagesByEqualsIC) {
+                log.info("No reactionEmojisByEqualsICAndEmoji found in config. Using default: no reacting to messages by equals ignore case");
+                reactingToMessagesByEqualsIC = false;
+            }
+        }
+
         if (stickerIds == null || stickerIds.length == 0) {
             sendingStickers = false;
         }
-
-        try {
-            reactingToMessages = configFileManager.parseBoolean("reactingToMessages");
-        } catch (NullPointerException e) {}
         if (reactionEmojis == null || reactionEmojis.length == 0) {
             reactingToMessages = false;
+        }
+        if (reactionEmojisByEqualsICAndEmoji == null || reactionEmojisByEqualsICAndEmoji.isEmpty()) {
+            reactingToMessagesByEqualsIC = false;
+        }
+
+        for (var entry : reactionEmojisByEqualsICAndEmoji.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            reactionEmojisByEqualsICAndEmoji.remove(key);
+            reactionEmojisByEqualsICAndEmoji.put(key.toLowerCase(), value);
         }
     }
 }
