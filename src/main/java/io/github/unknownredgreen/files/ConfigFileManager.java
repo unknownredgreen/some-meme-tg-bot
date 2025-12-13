@@ -23,6 +23,7 @@ public class ConfigFileManager {
         for (String line : startData) {
             String[] parsedLine = line.split(":");
             String key = parsedLine[0];
+            if (parsedLine.length != 2) throw new IllegalArgumentException("Wrong key:value inside config at %s".formatted(key));
             String value = parsedLine[1];
             map.put(key, value);
         }
