@@ -139,8 +139,8 @@ final class BotActionsWrapper {
 
         String finalString = sb.toString();
         switch (random.nextInt(0, 2)) {
-            case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4)));
-            case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999)));
+            case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4))); break;
+            case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999))); break;
         }
 
         return finalString;
