@@ -56,7 +56,8 @@ public class ConfigFileManager {
         Map<String, String> finalMap = new HashMap<>();
         for (String str : parseStringArray(key)) {
             String[] split = str.split("=");
-            if (split.length != 2) throw new IllegalArgumentException("Config: Too much arguments for map inside key '%s'".formatted(key));
+            if (split.length > 2) throw new IllegalArgumentException("Config: Too much arguments for map inside key '%s'".formatted(key));
+            if (split.length < 2) throw new IllegalArgumentException("Config: Not enough arguments for map inside key '%s'".formatted(key));
             finalMap.put(split[0], split[1]);
         }
         return finalMap;
