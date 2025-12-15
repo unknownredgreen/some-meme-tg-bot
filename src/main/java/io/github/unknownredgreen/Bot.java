@@ -65,7 +65,7 @@ final class Bot extends TelegramLongPollingBot {
         Message msg = update.getMessage();
         if ((long) msg.getDate() < botStartTimeInSeconds) return;
 
-        if (reactingToMessages && random.nextInt(0, 10) == 0) actions.setRandomReaction(msg);
+        if (reactingToMessages && random.nextInt(10) == 0) actions.setRandomReaction(msg);
 
         if (!msg.hasText()) return;
         long chatId = msg.getChatId();
@@ -102,21 +102,21 @@ final class Bot extends TelegramLongPollingBot {
 
         if (me != null && text.contains("@" + getBotUsername())) {
             makeRandomAction(msg, true, text);
-            switch (random.nextInt(1, 3)) {
-                case 1: actions.setReaction(msg, "\uD83D\uDC4D"); break;
-                case 2: actions.setReaction(msg, "\uD83D\uDC4E"); break;
+            switch (random.nextInt(2)) {
+                case 0: actions.setReaction(msg, "\uD83D\uDC4D"); break;
+                case 1: actions.setReaction(msg, "\uD83D\uDC4E"); break;
             }
             return;
         }
 
-        if (chatLimits.get(chatId) > 20 && random.nextInt(0, 5) == 0) {
+        if (chatLimits.get(chatId) > 20 && random.nextInt(5) == 0) {
             makeRandomAction(msg, false, text);
             chatLimits.put(chatId, 0);
         }
     }
 
     private void makeRandomAction(Message msg, boolean isReplyGuaranteed, String filteredText) {
-        int randomNum = random.nextInt(0, 20);
+        int randomNum = random.nextInt(20);
         if (randomNum == 0) {
             if (sendingStickers) actions.sendRandomSticker(msg);
             else actions.sendRandomMessage(msg, isReplyGuaranteed, filteredText);
@@ -134,7 +134,7 @@ final class Bot extends TelegramLongPollingBot {
         if (size < maxDataLength) {
             data.add(str);
         } else if (size == maxDataLength) {
-            data.set(random.nextInt(0, maxDataLength), str);
+            data.set(random.nextInt(maxDataLength), str);
         } else {
             while (data.size() > maxDataLength) {
                 data.removeLast();

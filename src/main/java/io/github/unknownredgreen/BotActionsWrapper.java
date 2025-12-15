@@ -42,7 +42,7 @@ final class BotActionsWrapper {
                 return;
             }
 
-            if (random.nextInt(0, 10) == 0) {
+            if (random.nextInt(10) == 0) {
                 bot.execute(SendMessage.builder()
                         .chatId(String.valueOf(msg.getChatId()))
                         .text(getRandomGeneratedString(filteredText))
@@ -62,7 +62,7 @@ final class BotActionsWrapper {
 
         try {
             bot.execute(SendSticker.builder()
-                    .sticker(new InputFile(stickerIds[random.nextInt(0, stickerIds.length)]))
+                    .sticker(new InputFile(stickerIds[random.nextInt(stickerIds.length)]))
                     .chatId(String.valueOf(msg.getChatId()))
                     .replyToMessageId(msg.getMessageId())
                     .build());
@@ -73,7 +73,7 @@ final class BotActionsWrapper {
     public void setRandomReaction(Message msg) {
         String[] reactions = reactionEmojis;
         List<ReactionType> emoji = new ArrayList<>();
-        emoji.add(new ReactionTypeEmoji("emoji", reactions[random.nextInt(0, reactions.length)]));
+        emoji.add(new ReactionTypeEmoji("emoji", reactions[random.nextInt(reactions.length)]));
         try {
             bot.execute(SetMessageReaction.builder()
                     .chatId(msg.getChatId())
@@ -102,10 +102,10 @@ final class BotActionsWrapper {
         List<String> strings = new ArrayList<>();
 
         for (int i = 0; i < random.nextInt(5, 11); i++) {
-            strings.add(data.get(random.nextInt(0, data.size())));
+            strings.add(data.get(random.nextInt(data.size())));
         }
         strings.add(
-                random.nextInt(0, strings.size()+1),
+                random.nextInt(strings.size()+1),
                 textToInclude
         );
 
@@ -119,9 +119,9 @@ final class BotActionsWrapper {
 
         for (int i = 2; i < strings.size(); i++) {
             String[] split = strings.get(i).split(" ");
-            String appendable = split[random.nextInt(0, split.length)];
+            String appendable = split[random.nextInt(split.length)];
             boolean upped = false;
-            if (random.nextInt(0, 2) == 0) {
+            if (random.nextInt(2) == 0) {
                 appendable = appendable.toUpperCase();
                 upped = true;
             } else if (!appendable.equals(appendable.toUpperCase())) {
@@ -129,16 +129,16 @@ final class BotActionsWrapper {
             }
             sb.append(appendable);
             if (upped) {
-                switch (random.nextInt(0, 3)) {
+                switch (random.nextInt(3)) {
                     case 1: sb.append("!!!!!"); break;
                     case 2: sb.append("?"); break;
                 }
             }
-            if (random.nextInt(0, 10) != 0) sb.append(" ");
+            if (random.nextInt(10) != 0) sb.append(" ");
         }
 
         String finalString = sb.toString();
-        switch (random.nextInt(0, 2)) {
+        switch (random.nextInt(2)) {
             case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4))); break;
             case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999))); break;
         }
