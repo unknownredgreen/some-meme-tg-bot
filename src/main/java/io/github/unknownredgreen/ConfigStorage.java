@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -89,12 +90,15 @@ public final class ConfigStorage {
             reactingToMessagesByEqualsIC = false;
         }
 
+        Map<String, String> reactionEmojisByEqualsICAndEmojiTemp = new HashMap<>();
+
         for (var entry : reactionEmojisByEqualsICAndEmoji.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
 
-            reactionEmojisByEqualsICAndEmoji.remove(key);
-            reactionEmojisByEqualsICAndEmoji.put(key.toLowerCase(), value);
+            reactionEmojisByEqualsICAndEmojiTemp.put(key.toLowerCase(), value);
         }
+        reactionEmojisByEqualsICAndEmoji.clear();
+        reactionEmojisByEqualsICAndEmoji.putAll(reactionEmojisByEqualsICAndEmojiTemp);
     }
 }
