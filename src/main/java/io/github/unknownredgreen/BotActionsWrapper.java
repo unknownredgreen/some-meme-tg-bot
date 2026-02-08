@@ -32,34 +32,20 @@ final class BotActionsWrapper {
     }
 
     public void sendRandomMessage(Message msg, boolean isReplyGuaranteed, String filteredText) {
-        try {
-            if (isReplyGuaranteed) {
-                bot.execute(SendMessage.builder()
-                        .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString(filteredText))
-                        .replyToMessageId(msg.getMessageId())
-                        .build());
-                return;
-            }
+        SendMessage.SendMessageBuilder builder = SendMessage.builder()
+                .chatId(String.valueOf(msg.getChatId()))
+                .text(getRandomGeneratedString(filteredText));
 
-            if (random.nextInt(10) == 0) {
-                bot.execute(SendMessage.builder()
-                        .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString(filteredText))
-                        .replyToMessageId(msg.getMessageId())
-                        .build());
-            } else {
-                bot.execute(SendMessage.builder()
-                        .chatId(String.valueOf(msg.getChatId()))
-                        .text(getRandomGeneratedString(filteredText))
-                        .build());
-            }
+        if (isReplyGuaranteed || (random.nextInt(10) == 0)) {
+            builder.replyToMessageId(msg.getMessageId());
+        }
+        try {
+            bot.execute(builder.build());
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
     }
     public void sendRandomSticker(Message msg) {
-
         try {
             bot.execute(SendSticker.builder()
                     .sticker(new InputFile(stickerIds[random.nextInt(stickerIds.length)]))
@@ -71,18 +57,7 @@ final class BotActionsWrapper {
         }
     }
     public void setRandomReaction(Message msg) {
-        String[] reactions = reactionEmojis;
-        List<ReactionType> emoji = new ArrayList<>();
-        emoji.add(new ReactionTypeEmoji("emoji", reactions[random.nextInt(reactions.length)]));
-        try {
-            bot.execute(SetMessageReaction.builder()
-                    .chatId(msg.getChatId())
-                    .messageId(msg.getMessageId())
-                    .reactionTypes(emoji)
-                    .build());
-        } catch (TelegramApiException e) {
-            log.error(e.getMessage());
-        }
+        setReaction(msg, reactionEmojis[random.nextInt(reactionEmojis.length)]);
     }
     public void setReaction(Message msg, String reaction) {
         List<ReactionType> emoji = new ArrayList<>();
@@ -113,10 +88,6 @@ final class BotActionsWrapper {
 
         sb.append(" ").append(lowerFirstChar(strings.get(1))).append(" ");
 
-        //log.debug(String.valueOf(strings.size()));
-        //strings.forEach(log::debug);
-        //log.debug("");
-
         for (int i = 2; i < strings.size(); i++) {
             String[] split = strings.get(i).split(" ");
             String appendable = split[random.nextInt(split.length)];
@@ -139,8 +110,8 @@ final class BotActionsWrapper {
 
         String finalString = sb.toString();
         switch (random.nextInt(2)) {
-            case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4))); break;
-            case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999))); break;
+            case 0: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(4))); break; //replace all nums with 0-3
+            case 1: finalString = finalString.replaceAll("\\d+", String.valueOf(random.nextInt(99999999))); break; //replace all nums with 0-99999998
         }
 
         return finalString;

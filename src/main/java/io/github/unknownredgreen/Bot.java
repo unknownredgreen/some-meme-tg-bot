@@ -35,7 +35,7 @@ final class Bot extends TelegramLongPollingBot {
         try {
             me = getMe();
         } catch (TelegramApiException e) {
-            log.error(e.getMessage());
+            throw new RuntimeException(e);
         }
         sendingStickers = configStorage.isSendingStickers();
         reactingToMessages = configStorage.isReactingToMessages();
@@ -64,10 +64,13 @@ final class Bot extends TelegramLongPollingBot {
         if (!update.hasMessage()) return;
         Message msg = update.getMessage();
         if ((long) msg.getDate() < botStartTimeInSeconds) return;
-
         if (reactingToMessages && random.nextInt(10) == 0) actions.setRandomReaction(msg);
-
         if (!msg.hasText()) return;
+
+        handleMessage(msg);
+    }
+
+    private void handleMessage(Message msg) {
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
 
@@ -78,7 +81,7 @@ final class Bot extends TelegramLongPollingBot {
             );
         }
 
-        chatLimits.put(chatId, chatLimits.getOrDefault(chatId, 0)+1);
+        chatLimits.put(chatId, chatLimits.getOrDefault(chatId, 0)+1); //message counter increment
 
         updateData(text);
 
@@ -89,10 +92,7 @@ final class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        if (
-            me != null
-                &&
-            msg.getReplyToMessage() != null
+        if (msg.getReplyToMessage() != null
                 &&
             msg.getReplyToMessage().getFrom().getId().equals(me.getId())
         ) {
@@ -100,16 +100,18 @@ final class Bot extends TelegramLongPollingBot {
             return;
         }
 
-        if (me != null && text.contains("@" + getBotUsername())) {
+        if (text.contains("@" + getBotUsername())) {
             makeRandomAction(msg, true, text);
             switch (random.nextInt(2)) {
-                case 0: actions.setReaction(msg, "\uD83D\uDC4D"); break;
-                case 1: actions.setReaction(msg, "\uD83D\uDC4E"); break;
+                case 0: actions.setReaction(msg, "\uD83D\uDC4D"); break; //like
+                case 1: actions.setReaction(msg, "\uD83D\uDC4E"); break; //dislike
             }
             return;
         }
 
-        if (chatLimits.get(chatId) > 20 && random.nextInt(5) == 0) {
+        if (chatLimits.get(chatId) > 20 && (random.nextInt(5) == 0)) {
+            //if more than 20 messages passed after the last bot random actions
+            //with 20% chance make a random action
             makeRandomAction(msg, false, text);
             chatLimits.put(chatId, 0);
         }
