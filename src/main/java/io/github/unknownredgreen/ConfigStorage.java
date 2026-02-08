@@ -24,6 +24,7 @@ public final class ConfigStorage {
     private Map<String, String> reactionEmojisByEqualsICAndEmoji; //where IC = Ignore case
 
     public Map<String, String> getReactionEmojisByEqualsICAndEmoji() {
+        if (!reactingToMessagesByEqualsIC) return null;
         return Collections.unmodifiableMap(reactionEmojisByEqualsICAndEmoji);
     }
 
@@ -90,15 +91,17 @@ public final class ConfigStorage {
             reactingToMessagesByEqualsIC = false;
         }
 
-        Map<String, String> reactionEmojisByEqualsICAndEmojiTemp = new HashMap<>();
+        if (reactionEmojisByEqualsICAndEmoji != null) {
+            Map<String, String> reactionEmojisByEqualsICAndEmojiTemp = new HashMap<>();
 
-        for (var entry : reactionEmojisByEqualsICAndEmoji.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
+            for (var entry : reactionEmojisByEqualsICAndEmoji.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
 
-            reactionEmojisByEqualsICAndEmojiTemp.put(key.toLowerCase(), value);
+                reactionEmojisByEqualsICAndEmojiTemp.put(key.toLowerCase(), value);
+            }
+            reactionEmojisByEqualsICAndEmoji.clear();
+            reactionEmojisByEqualsICAndEmoji.putAll(reactionEmojisByEqualsICAndEmojiTemp);
         }
-        reactionEmojisByEqualsICAndEmoji.clear();
-        reactionEmojisByEqualsICAndEmoji.putAll(reactionEmojisByEqualsICAndEmojiTemp);
     }
 }
