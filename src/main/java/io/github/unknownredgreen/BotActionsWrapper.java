@@ -19,19 +19,22 @@ final class BotActionsWrapper {
     private final Bot bot;
     private final Random random;
     private final List<String> data;
+    private final EveryHourStatsLog everyHourStatsLog;
     private final String[] stickerIds;
     private final String[] reactionEmojis;
 
-    public BotActionsWrapper(Bot bot, Random random, List<String> data, ConfigStorage configStorage) {
+    public BotActionsWrapper(Bot bot, Random random, List<String> data, ConfigStorage configStorage, EveryHourStatsLog everyHourStatsLog) {
         this.bot = bot;
         this.random = random;
         this.data = data;
+        this.everyHourStatsLog = everyHourStatsLog;
 
         stickerIds = configStorage.getStickerIds();
         reactionEmojis = configStorage.getReactionEmojis();
     }
 
     public void sendRandomMessage(Message msg, boolean isReplyGuaranteed, String filteredText) {
+        everyHourStatsLog.incrementIntValue("Messages sent");
         SendMessage.SendMessageBuilder builder = SendMessage.builder()
                 .chatId(String.valueOf(msg.getChatId()))
                 .text(getRandomGeneratedString(filteredText));
@@ -46,6 +49,7 @@ final class BotActionsWrapper {
         }
     }
     public void sendRandomSticker(Message msg) {
+        everyHourStatsLog.incrementIntValue("Stickers sent");
         try {
             bot.execute(SendSticker.builder()
                     .sticker(new InputFile(stickerIds[random.nextInt(stickerIds.length)]))
@@ -60,6 +64,7 @@ final class BotActionsWrapper {
         setReaction(msg, reactionEmojis[random.nextInt(reactionEmojis.length)]);
     }
     public void setReaction(Message msg, String reaction) {
+        everyHourStatsLog.incrementIntValue("Reactions set to messages");
         List<ReactionType> emoji = new ArrayList<>();
         emoji.add(new ReactionTypeEmoji("emoji", reaction));
         try {

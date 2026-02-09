@@ -18,6 +18,7 @@ final class Bot extends TelegramLongPollingBot {
     private final List<String> data;
     private final ConfigStorage configStorage;
     private final Random random;
+    private final EveryHourStatsLog everyHourStatsLog;
     private final Map<Long, Integer> chatLimits = new HashMap<>();
 
     private Map<String, String> reactionEmojisByEqualsICAndEmoji;
@@ -42,7 +43,12 @@ final class Bot extends TelegramLongPollingBot {
         reactingToMessagesByEqualsIC = configStorage.isReactingToMessagesByEqualsIC();
         maxDataLength = configStorage.getMaxDataLength();
         reactionEmojisByEqualsICAndEmoji = configStorage.getReactionEmojisByEqualsICAndEmoji();
-        actions = new BotActionsWrapper(this, random, getData(), configStorage);
+        actions = new BotActionsWrapper(this, random, getData(), configStorage, everyHourStatsLog);
+    }
+
+    @Override
+    public void onClosing() {
+        everyHourStatsLog.stopLogging();
     }
 
     @Override
@@ -71,6 +77,7 @@ final class Bot extends TelegramLongPollingBot {
     }
 
     private void handleMessage(Message msg) {
+        everyHourStatsLog.incrementIntValue("Messages handled");
         long chatId = msg.getChatId();
         String text = msg.getText().replaceAll("\\R", " ");
 
@@ -142,5 +149,6 @@ final class Bot extends TelegramLongPollingBot {
                 data.removeLast();
             }
         }
+        everyHourStatsLog.put("Current in-ram data size", data.size());
     }
 }

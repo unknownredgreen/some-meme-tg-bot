@@ -51,7 +51,11 @@ public class Main {
         configStorage = new ConfigStorage(configFileManager);
 
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        Bot bot = new Bot(botUsername, botToken, savedDataFileManager.load(), configStorage, random);
+
+        EveryHourStatsLog everyHourStatsLog = new EveryHourStatsLog();
+        Bot bot = new Bot(botUsername, botToken, savedDataFileManager.load(), configStorage, random, everyHourStatsLog);
+
+        everyHourStatsLog.startLogging();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
