@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Random;
 
 @Slf4j
-final class BotActionsWrapper {
+final class BotActions {
     private final Bot bot;
     private final Random random;
     private final List<String> data;
@@ -23,7 +23,7 @@ final class BotActionsWrapper {
     private final String[] stickerIds;
     private final String[] reactionEmojis;
 
-    public BotActionsWrapper(Bot bot, Random random, List<String> data, ConfigStorage configStorage, EveryHourStatsLog everyHourStatsLog) {
+    public BotActions(Bot bot, Random random, List<String> data, ConfigStorage configStorage, EveryHourStatsLog everyHourStatsLog) {
         this.bot = bot;
         this.random = random;
         this.data = data;

@@ -22,7 +22,7 @@ final class Bot extends TelegramLongPollingBot {
     private final Map<Long, Integer> chatLimits = new HashMap<>();
 
     private Map<String, String> reactionEmojisByEqualsICAndEmoji;
-    private BotActionsWrapper actions;
+    private BotActions actions;
     private User me;
     private boolean sendingStickers;
     private boolean reactingToMessages;
@@ -43,7 +43,7 @@ final class Bot extends TelegramLongPollingBot {
         reactingToMessagesByEqualsIC = configStorage.isReactingToMessagesByEqualsIC();
         maxDataLength = configStorage.getMaxDataLength();
         reactionEmojisByEqualsICAndEmoji = configStorage.getReactionEmojisByEqualsICAndEmoji();
-        actions = new BotActionsWrapper(this, random, getData(), configStorage, everyHourStatsLog);
+        actions = new BotActions(this, random, getData(), configStorage, everyHourStatsLog);
     }
 
     @Override
