@@ -1,5 +1,7 @@
-package io.github.unknownredgreen;
+package io.github.unknownredgreen.bot;
 
+import io.github.unknownredgreen.ConfigStorage;
+import io.github.unknownredgreen.EveryHourStatsLog;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.reactions.SetMessageReaction;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

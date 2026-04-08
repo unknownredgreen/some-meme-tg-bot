@@ -1,5 +1,6 @@
 package io.github.unknownredgreen;
 
+import io.github.unknownredgreen.bot.Bot;
 import io.github.unknownredgreen.files.ConfigFileManager;
 import io.github.unknownredgreen.files.SavedDataFileManager;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,7 @@
-package io.github.unknownredgreen;
+package io.github.unknownredgreen.bot;
 
+import io.github.unknownredgreen.ConfigStorage;
+import io.github.unknownredgreen.EveryHourStatsLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -12,7 +14,7 @@ import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
-final class Bot extends TelegramLongPollingBot {
+public final class Bot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
     private final List<String> data;
