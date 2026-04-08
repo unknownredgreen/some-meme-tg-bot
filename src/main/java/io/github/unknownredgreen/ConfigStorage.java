@@ -44,13 +44,7 @@ public final class ConfigStorage {
 
         try {
             sendingStickers = configFileManager.parseBoolean("sendingStickers");
-        } catch (NullPointerException ignored) {}
-
-        try {
             reactingToMessages = configFileManager.parseBoolean("reactingToMessages");
-        } catch (NullPointerException ignored) {}
-
-        try {
             reactingToMessagesByEqualsIC = configFileManager.parseBoolean("reactingEmojisByEqualsIC");
         } catch (NullPointerException ignored) {}
 
