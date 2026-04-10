@@ -80,7 +80,7 @@ public final class Main {
     }
 
     private static void launchBot(String[] args) throws TelegramApiException {
-        String botUsername = args[0];
+        String botUsername = args[0].replace("@", "");
         String botToken = args[1];
         String dataFilePath = args[2];
         String configFilePath = args[3];
