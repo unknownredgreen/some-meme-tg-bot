@@ -1,5 +1,6 @@
 package io.github.unknownredgreen.files;
 
+import io.github.unknownredgreen.errors.ErrorExit;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -9,21 +10,25 @@ import java.nio.file.Paths;
 import java.util.*;
 
 @RequiredArgsConstructor
-public class ConfigFileManager {
+public final class ConfigFileManager {
     @Getter
     private final String configFilePath;
     private List<String> startData;
     private final Map<String, String> map = new LinkedHashMap<>();
     private boolean canLoad = true;
 
-    public void init() throws IOException {
+    public void init() {
         if (!canLoad) throw new IllegalStateException("Can`t load more than one time.");
         canLoad = false;
-        startData = Files.readAllLines(Paths.get(configFilePath));
+        try {
+            startData = Files.readAllLines(Paths.get(configFilePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         for (String line : startData) {
             String[] parsedLine = line.split(":");
             String key = parsedLine[0];
-            if (parsedLine.length != 2) throw new IllegalArgumentException("Wrong key:value inside config at %s".formatted(key));
+            if (parsedLine.length != 2) ErrorExit.config("Wrong key:value inside config at %s".formatted(key));
             String value = parsedLine[1];
             map.put(key, value);
         }
@@ -48,7 +53,7 @@ public class ConfigFileManager {
     public Boolean parseBoolean(String key) {
         String value = parseString(key);
         if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
-            throw new IllegalArgumentException("Invalid boolean value for key '%s' in config".formatted(key));
+            ErrorExit.config("Invalid boolean value for key '%s' in config".formatted(key));
         }
         return Boolean.parseBoolean(value);
     }
@@ -56,8 +61,8 @@ public class ConfigFileManager {
         Map<String, String> finalMap = new HashMap<>();
         for (String str : parseStringArray(key)) {
             String[] split = str.split("=");
-            if (split.length > 2) throw new IllegalArgumentException("Config: Too much arguments for map inside key '%s'".formatted(key));
-            if (split.length < 2) throw new IllegalArgumentException("Config: Not enough arguments for map inside key '%s'".formatted(key));
+            if (split.length > 2) ErrorExit.config("Config: Too much arguments for map inside key '%s'".formatted(key));
+            if (split.length < 2) ErrorExit.config("Config: Not enough arguments for map inside key '%s'".formatted(key));
             finalMap.put(split[0], split[1]);
         }
         return finalMap;

@@ -23,3 +23,10 @@ reactionEmojis:👨‍💻,🎅
 
 ## Telegram limitations
 Bots can react not with all reactions that users can
+
+## Exit codes
+0 - OK
+
+1 - generic error
+
+2 - config error

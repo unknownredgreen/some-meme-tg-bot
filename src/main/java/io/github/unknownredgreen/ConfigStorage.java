@@ -1,5 +1,6 @@
 package io.github.unknownredgreen;
 
+import io.github.unknownredgreen.errors.ErrorExit;
 import io.github.unknownredgreen.files.ConfigFileManager;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,9 +34,8 @@ public final class ConfigStorage {
 
         try {
             maxDataLength = configFileManager.parseInt("maxDataLength");
-            //i don`t think you even need < 10 data saved
-            if (maxDataLength < 10) {
-                throw new RuntimeException("Max data length can`t be < 10. Change maxDataLength in %s".formatted(configFileManager.getConfigFilePath()));
+            if (maxDataLength < 1) {
+                ErrorExit.config("Max data length can`t be < 1. Change maxDataLength in %s".formatted(configFileManager.getConfigFilePath()));
             }
         } catch (NumberFormatException | NullPointerException e) {
             log.info("No maxDataLength found in config. Using default: 1000");
